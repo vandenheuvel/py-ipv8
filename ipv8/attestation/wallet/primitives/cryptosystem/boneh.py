@@ -43,6 +43,8 @@ def get_random_exponentiation(p, n):
     """
     Create a random exponentiation of p in message space n.
     """
+    # Why `4`?
+    # `n` should be big, or this will be a costly loop
     r = randint(4, n - 1)
     test = p.intpow(r)
     while test == FP2Value(p.mod, 1):
@@ -73,11 +75,11 @@ def get_good_wp(n, p=None):
     """
     Instead of inspecting torsion points and checking for co-primality:
     just brute force generate pairings until we a get a good one.
-    :return: modulus, weilparing
+    :return: modulus, weil paring
     """
-    wp = None
     if not p:
         p = generate_prime(n)
+    wp = None
     while (wp is None) or not is_good_wp(n, wp):
         g1x, g1y = get_random_base(n)
         wp = bilinear_group(n, p, g1x, g1y, g1x, g1y)
@@ -101,14 +103,14 @@ def generate_keypair(key_size=512):
     """
     Generate a keypair for a certain prime bit space.
     """
-    t1, t2 = generate_primes(key_size)
-    n = t1 * t2
+    prime_1, prime_2 = generate_primes(key_size)
+    n = prime_1 * prime_2
     p, g = get_good_wp(n)
     u = None
-    while not u or (u.intpow(t2) == FP2Value(p, 1)):
+    while not u or (u.intpow(prime_2) == FP2Value(p, 1)):
         _, u = get_good_wp(n, p)
-    h = u.intpow(t2)
-    return BonehPublicKey(p, g, h), BonehPrivateKey(p, g, h, t1*t2, t1)
+    h = u.intpow(prime_2)
+    return BonehPublicKey(p, g, h), BonehPrivateKey(p, g, h, prime_1*prime_2, prime_1)
 
 
 def encode(pubkey, m):

@@ -13,6 +13,7 @@ def generate_modular_additive_inverse(p, n):
     """
     Generate a group of size n which is its own modular additive inverse modulo p + 1.
     """
+    # Choose the first n - 1 numbers randomly
     R = [randint(1, p - 1) for _ in range(n - 1)]
     # The additive inverse of sum(R) % (p + 1)
     R.append((-sum(R)) % (p + 1))
@@ -26,6 +27,8 @@ def generate_modular_additive_inverse(p, n):
 def attest(PK, value, bitspace):
     """
     Create an attestation for a public key's value lying within a certain bitspace.
+
+    # Do we require bitspace % 2 == 0?
 
     :param PK: `BonehPublicKey` instance
     :param value: int
@@ -44,20 +47,20 @@ def attest(PK, value, bitspace):
     t_out_public = map(lambda a, b: encode(PK, a + b), A, R)
     t_out_private = list()
     for i in range(0, len(A) - 1, 2):
-        # We probably do this to check if it adds to zero
+        # We probably do this to be able to check if it adds to zero, somehow
         t_out_private.append((i, encode(PK, (-(R[i] + R[i + 1])) % (PK.p + 1))))
 
     # Assume len(t_out_public) % 2 == 0?
     t_out_public = [(i, t_out_public[i], t_out_public[i+1]) for i in range(0, len(t_out_public), 2)]
     ### Shuffle both t_out_private and t_out_public in the same way
-    # Shuffle t_out_public first, we know the indices
+    # Shuffle t_out_public first, old indices (two steps at a time) are stored in the first element of the tuples
     shuffle(t_out_public)
     #
-    out_public = []
+    out_public = list()
     #
-    out_private = []
-    #
-    shuffle_map = {}
+    out_private = list()
+    # From where it was
+    shuffle_map = dict()
     #
     for (i, v1, v2) in t_out_public:
         shuffle_map[i] = len(out_public)
@@ -70,7 +73,7 @@ def attest(PK, value, bitspace):
     shuffle(out_private)
     # Q: Formalize
     #
-    bitpairs = []
+    bitpairs = list()
     for (i, e) in out_private:
         bitpairs.append(BitPairAttestation(out_public[i], out_public[i+1], e))
     return Attestation(PK, bitpairs)
