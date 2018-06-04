@@ -14,7 +14,11 @@ def generate_modular_additive_inverse(p, n):
     Generate a group of size n which is its own modular additive inverse modulo p + 1.
     """
     R = [randint(1, p - 1) for _ in range(n - 1)]
-    R.append(p - (sum(R) % (p + 1)) + 1)
+    # The additive inverse of sum(R) % (p + 1)
+    R.append(p + 1 - (sum(R) % (p + 1)))
+    # Change this to: R.append((-sum(R)) % (p + 1))
+    # Now, we have sum(R) % (p + 1) = 0
+    # For any subset, sum of the complement is the additive inverse of the sum of the subset
     shuffle(R)
     return R
 
@@ -29,7 +33,7 @@ def attest(PK, value, bitspace):
     :return: `Attestation` instance
     """
     # Convert `value` to binary and make a list of integer numbers of `0` and `1`
-    A = list([int(c) for c in str(bin(value))[2:]])
+    A = [int(c) for c in str(bin(value))[2:]]
     # Pad this values with zero's such that the length is equal to the length of the bitspace
     while len(A) < bitspace:
         A.insert(0, 0)
@@ -38,23 +42,33 @@ def attest(PK, value, bitspace):
     R = generate_modular_additive_inverse(PK.p, bitspace)
     # Encode for PK the sum of a bit of A and a random number in R
     t_out_public = map(lambda a, b: encode(PK, a + b), A, R)
-    t_out_private = []
+    t_out_private = list()
     for i in range(0, len(A) - 1, 2):
-        t_out_private.append((i, encode(PK, PK.p - ((R[i] + R[i + 1]) % (PK.p + 1)) + 1)))
-    # Shuffle:
+        # Same as function above
+        t_out_private.append((i, encode(PK, (-(R[i] + R[i + 1])) % (PK.p + 1))))
+
+    # Assume len(t_out_public) % 2 == 0?
     t_out_public = [(i, t_out_public[i], t_out_public[i+1]) for i in range(0, len(t_out_public), 2)]
+    # Shuffle both t_out_private and t_out_public in the same way
     shuffle(t_out_public)
+    #
     out_public = []
+    #
     out_private = []
+    #
     shuffle_map = {}
+    #
     for (i, v1, v2) in t_out_public:
         shuffle_map[i] = len(out_public)
         out_public.append(v1)
         out_public.append(v2)
+    # `e` is something encrypted
     for (i, e) in t_out_private:
         out_private.append((shuffle_map[i], e))
+    # Do we lose
     shuffle(out_private)
-    # Formalize
+    # Q: Formalize
+    # 
     bitpairs = []
     for (i, e) in out_private:
         bitpairs.append(BitPairAttestation(out_public[i], out_public[i+1], e))
