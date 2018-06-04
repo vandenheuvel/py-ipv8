@@ -15,7 +15,7 @@ def generate_modular_additive_inverse(p, n):
     """
     R = [randint(1, p - 1) for _ in range(n - 1)]
     # The additive inverse of sum(R) % (p + 1)
-    R.append(p + 1 - (sum(R) % (p + 1)))
+    R.append((-sum(R)) % (p + 1))
     # Change this to: R.append((-sum(R)) % (p + 1))
     # Now, we have sum(R) % (p + 1) = 0
     # For any subset, sum of the complement is the additive inverse of the sum of the subset
@@ -44,12 +44,13 @@ def attest(PK, value, bitspace):
     t_out_public = map(lambda a, b: encode(PK, a + b), A, R)
     t_out_private = list()
     for i in range(0, len(A) - 1, 2):
-        # Same as function above
+        # We probably do this to check if it adds to zero
         t_out_private.append((i, encode(PK, (-(R[i] + R[i + 1])) % (PK.p + 1))))
 
     # Assume len(t_out_public) % 2 == 0?
     t_out_public = [(i, t_out_public[i], t_out_public[i+1]) for i in range(0, len(t_out_public), 2)]
-    # Shuffle both t_out_private and t_out_public in the same way
+    ### Shuffle both t_out_private and t_out_public in the same way
+    # Shuffle t_out_public first, we know the indices
     shuffle(t_out_public)
     #
     out_public = []
@@ -68,7 +69,7 @@ def attest(PK, value, bitspace):
     # Do we lose
     shuffle(out_private)
     # Q: Formalize
-    # 
+    #
     bitpairs = []
     for (i, e) in out_private:
         bitpairs.append(BitPairAttestation(out_public[i], out_public[i+1], e))
