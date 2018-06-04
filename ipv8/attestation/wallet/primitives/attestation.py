@@ -22,11 +22,21 @@ def generate_modular_additive_inverse(p, n):
 def attest(PK, value, bitspace):
     """
     Create an attestation for a public key's value lying within a certain bitspace.
+
+    :param PK: `BonehPublicKey` instance
+    :param value: int
+    :param bitspace: int describing bitspace size in bits
+    :return: `Attestation` instance
     """
+    # Convert `value` to binary and make a list of integer numbers of `0` and `1`
     A = list([int(c) for c in str(bin(value))[2:]])
+    # Pad this values with zero's such that the length is equal to the length of the bitspace
     while len(A) < bitspace:
         A.insert(0, 0)
+
+    # ? - A bunch of random numbers
     R = generate_modular_additive_inverse(PK.p, bitspace)
+    # Encode for PK the sum of a bit of A and a random number in R
     t_out_public = map(lambda a, b: encode(PK, a + b), A, R)
     t_out_private = []
     for i in range(0, len(A) - 1, 2):
